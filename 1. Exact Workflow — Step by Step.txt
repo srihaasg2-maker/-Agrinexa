@@ -1,0 +1,56 @@
+1. Exact Workflow — Step by Step
+
+Who starts it: The farmer (or their farm manager) — either through the mobile app in the field or the web dashboard at home.
+
+Step-by-step flow:
+
+Input — Farmer either snaps a photo of a receipt, speaks a voice note ("bought 50 bags of NPK for $2,200"), imports a bank statement, or types an entry directly.
+Parsing — The Multi-Modal Input Parser (OCR + Vision LLM) reads the receipt/voice and extracts vendor, amount, date, and category.
+Classification & Allocation — The system tags the transaction into the Agricultural Chart of Accounts and attaches it to a specific Farm, Field, or Crop Cycle.
+Deterministic Calculation — This is the core: Python math tools (not the AI) compute cost-per-acre, break-even price, cash flow projections, DSCR, etc.
+Agent Reasoning — The LLM interprets what the farmer is asking ("will I profit this year?"), orchestrates the right calculation tool, and turns the number back into plain language.
+Output — Farmer sees a dashboard, a chat answer, or gets a proactive push alert (e.g., "cash may run short in 45 days").
+
+Final output: A clear financial picture per field/crop — break-even price, cash flow calendar, and risk alerts — delivered through dashboard, chat, or notification.
+
+2. Where Exactly Is AI Used
+
+Be very precise here — this is the question mentors probe hardest.
+
+AI/Vision model → reads receipts and voice notes (OCR + entity extraction)
+Agentic LLM → understands natural language questions, decides which financial tool to call, and explains results conversationally
+NOT AI → the actual math (break-even, DSCR, cash flow) is done by validated, unit-tested Python functions — this is explicitly called out in your plan as a safeguard against "LLM math hallucination"
+
+"If AI is removed, does it still work?" — Answer honestly: Yes, as a manual data-entry accounting app it would still function, but two things disappear:
+
+Farmers would have to manually type every transaction instead of snapping a photo or talking
+There'd be no conversational interface — they'd need to navigate menus/reports instead of just asking "will I make money this year?"
+
+So AI's value-add is friction removal and accessibility for a non-tech-savvy user, not the financial logic itself. This is actually a strong answer — it shows you understand AI is an interface/automation layer on top of a deterministic core, which is the correct architecture, not a weakness.
+
+3. Real User vs. Buyer
+
+Don't say "everyone" — be specific:
+
+Real/primary user: Small-to-mid-size crop and livestock farmers (the ones actually doing data entry, checking cash flow, deciding what to buy/sell)
+Buyer/decision-maker: This depends on your go-to-market — pick one and commit to it in the room:
+If direct-to-farmer: the farm owner/operator is both user and buyer (freemium or subscription model)
+If B2B2C: agricultural cooperatives, farm input retailers (like Agway), or agri-lenders/banks could be the buyer, offering it to farmers as a value-added service (this also solves farmers' resistance to paying for software directly)
+Secondary stakeholder: Agricultural lenders/banks care because DSCR and cash flow visibility reduces their loan default risk — this could even be a partnership angle later.
+Prep for Follow-Up Questions
+
+Market survey / existing competitors:
+Be ready to name 2-3 real players and differentiate:
+
+FarmLogs / Bushel Farm — mostly field/agronomic tracking, weaker on granular financial break-even modeling
+QuickBooks / generic accounting software — doesn't understand crop cycles, yield sensitivity, or field-level cost allocation
+Your differentiation: purpose-built agricultural financial math (break-even by yield scenario, DSCR, crop-cycle-aware cash flow) + conversational AI interface designed for low-tech-literacy users
+
+Scalability:
+Point to the architecture in your plan — FastAPI + PostgreSQL/TimescaleDB + Redis/Celery for async processing is a standard horizontally-scalable stack. Mention that heavy work (OCR, simulations) is offloaded to background workers, not blocking the user.
+
+Cost:
+Be upfront that costs come from three places: LLM API calls (vision + reasoning), market data API subscriptions, and infrastructure (DB/hosting). Mention you'd control cost by using cheaper models (e.g., Gemini Flash) for OCR and reserving heavier reasoning calls for complex queries only.
+
+"Can it handle 500 users?"
+Yes — for 500 users, this is not a heavy scale problem. Say specifically: PostgreSQL comfortably handles that transaction volume, Celery/Redis queues absorb spikes in receipt-processing load, and you'd horizontally scale the FastAPI layer behind a load balancer if needed. The honest caveat: LLM API rate limits/costs are the more likely bottleneck at scale, not the database — so batching and caching (e.g., caching market price lookups) matters more than raw infra scaling at this stage.
