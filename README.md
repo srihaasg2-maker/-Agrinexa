@@ -1,2 +1,1 @@
-# -Agrinexa
-hackathon
+# AgriNexa
